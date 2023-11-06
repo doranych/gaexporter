@@ -1,20 +1,23 @@
 package export
 
 import (
+	"bytes"
 	"encoding/base32"
 	"net/url"
 	"strconv"
 	"strings"
 
-	"github.com/doranych/gaexporter/parser"
+	"github.com/mdp/qrterminal/v3"
 	"github.com/pkg/errors"
+	"rsc.io/qr"
 
+	"github.com/doranych/gaexporter/parser"
 	"github.com/doranych/gaexporter/protos"
 )
 
 func payloadToText(payload *protos.MigrationPayload) []byte {
 	sb := strings.Builder{}
-	for i, _ := range payload.GetOtpParameters() {
+	for i := range payload.GetOtpParameters() {
 		sb.WriteString("Name: ")
 		sb.WriteString(payload.GetOtpParameters()[i].GetName() + "\n")
 		sb.WriteString("Secret: ")
@@ -76,16 +79,44 @@ func processMigrationUrl(str string, output Output, format string) error {
 		}
 		return nil
 	case "qr":
-		_, err := output.Dest.Write(payloadToQr(payload))
+		qr, err := payloadToQr(payload, output)
+		_, err = output.Dest.Write(qr)
 		if err != nil {
 			return errors.Wrap(err, "failed to write output")
 		}
+		return nil
 	default:
 		return errors.New("format must be txt or qr")
 	}
-	return errors.New("not implemented")
 }
 
-func payloadToQr(payload *protos.MigrationPayload) []byte {
-	return nil
+func payloadToQr(payload *protos.MigrationPayload, output Output) ([]byte, error) {
+	if output.Type == OutputTypeStdout {
+		result := make([]byte, 0)
+
+		result = append(result, payloadToText(payload)...)
+		result = append(result, []byte("\n")...)
+
+		for i, parameter := range payload.OtpParameters {
+			buf := bytes.NewBuffer([]byte{})
+			cfg := qrterminal.Config{
+				Writer:    buf,
+				QuietZone: 2,
+				BlackChar: qrterminal.BLACK,
+				WhiteChar: qrterminal.WHITE,
+			}
+			qrterminal.GenerateWithConfig(otpUrl(parameter), cfg)
+
+			result = append(result, buf.Bytes()...)
+			if i != len(payload.OtpParameters)-1 {
+				result = append(result, []byte("\n")...)
+			}
+		}
+		return result, nil
+	}
+	code, err := qr.Encode(otpUrl(payload.GetOtpParameters()[0]), qr.L)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to encode qr code")
+	}
+	return code.PNG(), err
 }

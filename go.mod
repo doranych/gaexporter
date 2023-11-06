@@ -4,10 +4,12 @@ go 1.20
 
 require (
 	github.com/makiuchi-d/gozxing v0.1.1
+	github.com/mdp/qrterminal/v3 v3.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.0
 	golang.org/x/image v0.13.0
 	google.golang.org/protobuf v1.31.0
+	rsc.io/qr v0.2.0
 )
 
 require (

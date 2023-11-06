@@ -5,5 +5,9 @@ import (
 )
 
 func RunQR(input Input, output Output) error {
-	return errors.New("not implemented")
+	err := processInput(input, output, "qr")
+	if err != nil {
+		return errors.Wrap(err, "failed to process input")
+	}
+	return nil
 }
