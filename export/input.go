@@ -26,7 +26,7 @@ const (
 
 func getInputFormat(input Input) (InputFormat, error) {
 	_, _, err := image.Decode(input)
-	defer input.Seek(0, io.SeekStart)
+	defer func() { _, _ = input.Seek(0, io.SeekStart) }()
 	if err != nil {
 		if errors.Is(err, image.ErrFormat) {
 			return InputFormatText, nil

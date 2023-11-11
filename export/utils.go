@@ -79,10 +79,13 @@ func processMigrationUrl(str string, output Output, format string) error {
 		}
 		return nil
 	case "qr":
-		qr, err := payloadToQr(payload, output)
-		_, err = output.Dest.Write(qr)
-		if err != nil {
-			return errors.Wrap(err, "failed to write output")
+		qrBytes, qrErr := payloadToQr(payload, output)
+		if qrErr != nil {
+			return errors.Wrap(qrErr, "failed to create qr")
+		}
+		_, qrErr = output.Dest.Write(qrBytes)
+		if qrErr != nil {
+			return errors.Wrap(qrErr, "failed to write output")
 		}
 		return nil
 	default:
