@@ -24,7 +24,7 @@ func processInput(input Input, output Output, fmt string) error {
 
 		result, _ := qrReader.Decode(bmp, nil)
 
-		err = processMigrationUrl(result.String(), output, fmt)
+		err = processMigrationURL(result.String(), output, fmt)
 		if err != nil {
 			return errors.Wrap(err, "failed to process migration url")
 		}
@@ -32,7 +32,7 @@ func processInput(input Input, output Output, fmt string) error {
 		scanner := bufio.NewScanner(input)
 		for scanner.Scan() {
 			str := scanner.Text()
-			err = processMigrationUrl(str, output, fmt)
+			err = processMigrationURL(str, output, fmt)
 			if err != nil {
 				return errors.Wrap(err, "failed to process migration url")
 			}

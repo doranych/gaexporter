@@ -33,7 +33,7 @@ func payloadToText(payload *protos.MigrationPayload) []byte {
 		sb.WriteString("Counter: ")
 		sb.WriteString(strconv.Itoa(int(payload.GetOtpParameters()[i].GetCounter())) + "\n")
 		sb.WriteString("OtpURL: ")
-		sb.WriteString(otpUrl(payload.GetOtpParameters()[i]) + "\n")
+		sb.WriteString(otpURL(payload.GetOtpParameters()[i]) + "\n")
 		sb.WriteString("\n")
 	}
 	return []byte(sb.String())
@@ -47,7 +47,7 @@ func otpAlgorithm(i int32) string {
 	return strings.ToLower(strings.TrimPrefix(protos.MigrationPayload_Algorithm_name[i], "ALGORITHM_"))
 }
 
-func otpUrl(payload *protos.MigrationPayload_OtpParameters) string {
+func otpURL(payload *protos.MigrationPayload_OtpParameters) string {
 	u := url.URL{
 		Scheme: "otpauth",
 		Host:   otpType(int32(payload.GetType())),
@@ -65,7 +65,7 @@ func otpUrl(payload *protos.MigrationPayload_OtpParameters) string {
 	return u.String()
 }
 
-func processMigrationUrl(str string, output Output, format string) error {
+func processMigrationURL(str string, output Output, format string) error {
 	payload, err := parser.GetMigrationPayload(str)
 	if err != nil {
 		return errors.Wrap(err, "failed to parse input")
@@ -108,7 +108,7 @@ func payloadToQr(payload *protos.MigrationPayload, output Output) ([]byte, error
 				BlackChar: qrterminal.BLACK,
 				WhiteChar: qrterminal.WHITE,
 			}
-			qrterminal.GenerateWithConfig(otpUrl(parameter), cfg)
+			qrterminal.GenerateWithConfig(otpURL(parameter), cfg)
 
 			result = append(result, buf.Bytes()...)
 			if i != len(payload.OtpParameters)-1 {
@@ -117,7 +117,7 @@ func payloadToQr(payload *protos.MigrationPayload, output Output) ([]byte, error
 		}
 		return result, nil
 	}
-	code, err := qr.Encode(otpUrl(payload.GetOtpParameters()[0]), qr.L)
+	code, err := qr.Encode(otpURL(payload.GetOtpParameters()[0]), qr.L)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to encode qr code")
 	}
